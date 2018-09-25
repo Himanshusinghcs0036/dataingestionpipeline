@@ -3,7 +3,7 @@
 
 # In[18]:
 from pyspark.sql import SparkSession
-from dependencies import logging
+import logging
 from SourceInfo import SourceInfo as sourceInfo
 
 class ReadSource():
@@ -13,18 +13,18 @@ class ReadSource():
     
     @staticmethod
     def extract_data(spark,logger):
-        if(sourceInfo.sourceData["sourceType"].lower()=="hive"):
+        if(sourceInfo.sourceData["connType"].lower()=="hive"):
             return ReadSource.readFromHive(spark,logger)
-        if((sourceInfo.sourceData["sourceType"].lower()=="hdfs") or (sourceInfo.sourceData["sourceType"].lower()=="localfs")):
+        if((sourceInfo.sourceData["connType"].lower()=="hdfs") or (sourceInfo.sourceData["connType"].lower()=="localfs")):
             return ReadSource.readFromFS(spark,logger)
-        if(sourceInfo.sourceData["sourceType"].lower()=="mysql"):
+        if(sourceInfo.sourceData["connType"].lower()=="mysql"):
             return ReadSource.readFromMySQL(spark)
             
     @staticmethod    
     def readFromFS(spark,logger):
         logMessage="DP_INFO: Extracting data from HDFS"
         hdfsPath=sourceInfo.sourceData["path"]
-        if(sourceInfo.sourceData["sourceType"]=="LocalFS"):
+        if(sourceInfo.sourceData["connType"]=="LocalFS"):
             hdfsPath="/user/app/"+sourceInfo.sourceData["dpName"]+"/*"
             logMessage="DP_INFO: Extracting data from LocalFS"
         logger.warn(logMessage)
@@ -39,7 +39,7 @@ class ReadSource():
     @staticmethod
     def readFromHive(spark,logger):
         logger.warn("DP_INFO: Extracting data from Hive")
-        source=sourceInfo.sourceData["dbName"]+sourceInfo.sourceData["tableName"]
+        source=sourceInfo.sourceData["dbName"]+"."+sourceInfo.sourceData["tableName"]
         tempDF=spark.table(source)
         return tempDF
         

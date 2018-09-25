@@ -10,7 +10,7 @@ from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import *
 
 # local dependencies
-from dependencies import logging
+import logging
 from SourceInfo import SourceInfo as sourceInfo
 
 class RuleTransformation():
@@ -21,39 +21,53 @@ class RuleTransformation():
         rule_col_list=sourceInfo.sourceData['RuleColumn']
         sourceInfo.sourceData['sourcePrimKey']
         sourceInfo.sourceData['delmiter']
+        supporting_data=sourceInfo.sourceData['supporting_data']
+        print("##########################################"+str(inputDF.count()))
         
-        for rule_name, rule_column, supporting_field in rule_list.split(","),rule_col_list.split("&"), supporting_data.split("&"):
+        for rule_name, rule_column, supporting_field in zip(rule_list.split(","),rule_col_list.split("&"), supporting_data.split("&")):
             
             logger.warn("DP_INFO: Starting Rule Implementation for rule "+rule_name+" for rule columns  "+rule_column);
-            if(rule_name.lower()=="nullcheck"):
+            if(rule_name.lower()=="remove_null"):
                 #callNullCheck
-                inputDF=RuleTransformation.null_check(inputDF, rule_column)
+                inputDF=RuleTransformation.remove_null(inputDF, rule_column)
+                print("######################  Count after input remove null        ####################"+str(inputDF.count()))
             if(rule_name.lower()=="dedup"):
-                #callDedup
+                #callDedupprint
+                print("DeDup")
             if(rule_name.lower()=="validvalue"):
                 #callvalidvalues
+                print("DeDup")
             if(rule_name.lower()=="invalidvalues"):
                 #InvalidValues
+                print("DeDup")
             if(rule_name.lower()=="integercheck"):
-                #callInteger
+                inputDF=RuleTransformation.isNumeric(inputDF, rule_column, rule_name)
+                print("######################  Count after input numeric check      ####################"+str(inputDF.count()))
             if(rule_name.lower()=="numericcheck"):
                 #callNNumericheck
+                print("DeDup")
             if(rule_name.lower()=="rangecheck"):
                 #callRange
+                print("DeDup")
             if(rule_name.lower()=="lengthcheck"):
                 #calllengthChecker
+                print("DeDup")
             if(rule_name.lower()=="cdc"):
                 #perfromCDC
+                print("DeDup")
+       
+        return inputDF
             
     @staticmethod
-    def null_check(inputDF, ruleColumn):
+    def remove_null(inputDF, ruleColumn):
         filterCond=""
         delm=""
-        for col in ruleColumns.split(","):
-            filterList=filterList+delm+ col+ " is not null"
+        for col in ruleColumn.split(","):
+            filterCond=filterCond+delm+ col+ " is not null"
             delm=" and "
         
         outputDF=inputDF.filter(filterCond)
+        return outputDF
         
     @staticmethod
     def dedup(inputDF, ruleColumn):
@@ -83,7 +97,7 @@ class RuleTransformation():
         
         isStarting=True 
         filterCondition=""
-        for col in ruleColumn:
+        for col in ruleColumn.split(","):
             if(isStarting):
                 filterCondition=inputDF[col].rlike(regex_pattern)
                 isStarting=False
@@ -91,6 +105,7 @@ class RuleTransformation():
                 filterCondition=filterCondition & inputDF[col].rlike(regex_pattern)
                 
         outputDF=inputDF.filter(filterCondition)
+        return outputDF
     
     @staticmethod
     def isInRange(inputDF, ruleColumn, rangeValue):

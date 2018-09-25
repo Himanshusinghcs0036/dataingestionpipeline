@@ -5,6 +5,7 @@
 
 
 from pyspark.sql import SparkSession
+from TargetInfo import TargetInfo as targetInfo
 
 class WriteToTarget():
     
@@ -13,9 +14,9 @@ class WriteToTarget():
         
     #input spark type(SparkSession)
     @staticmethod
-    def writeToHive(spark, targetInfo, targetDF):
+    def writeToHive(spark, targetDF):
         print("Pushing final data to Target")
-        target=targetInfo.dbName+"."+targetInfo.tgtTableName
+        target=targetInfo.targetMetaData["dbName"]+"."+targetInfo.targetMetaData["tgtTableName"]
         #Push Data to Hive
         selectCol=""
         delm="("
@@ -24,11 +25,14 @@ class WriteToTarget():
             delm=","
 
         selectCol=selectCol+")"
-        spark.sql("create table IF NOT EXISTS "+target+selectCol+" row format delemited fields terminated by ',' stored as "+targetInfo.tableFormat)
-        spark.createOrReplaceTempView("tempDF")
-        if(targetInfo.writeMode.lower()=="append"):
+        targetDF.show()
+        createStmnt="create table IF NOT EXISTS "+target+selectCol+" stored as "+targetInfo.targetMetaData["tableFormat"]
+        spark.sql(createStmnt)
+        targetDF.createOrReplaceTempView("tempDF")
+        
+        if(targetInfo.targetMetaData["writeMode"].lower()=="append"):
             spark.sql("insert into "+target+" select * from tempDF")
-        if(targetInfo.writeMode.lower()=="overWrite"):
+        elif(targetInfo.targetMetaData["writeMode"].lower()=="overwrite"):
             spark.sql("insert overwrite table "+target+" select * from tempDF")
         else:
             raise Exception('InCorrect Insert Mothod')

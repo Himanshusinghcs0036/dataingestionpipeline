@@ -14,11 +14,11 @@ class ReadProperty():
     @staticmethod
     def allotValue(sparkSess, applicatioName):
         propFile=sparkSess.read.format("csv").option("delimiter","=").load(SparkFiles.get(applicatioName+".properties")).rdd.map(list)
-        for key,value in propFile:
+        for key,value in propFile.collect():
             if value!=None:
                 if (key in sourceInfo.sourceData.keys()):
                     sourceInfo.sourceData[key]=value
-                if (key in targetInfo.sourceData.key()):
+                if (key in targetInfo.targetMetaData.keys()):
                     targetInfo.targetMetaData[key]=value
         
 

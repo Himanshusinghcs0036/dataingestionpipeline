@@ -23,12 +23,10 @@ class SourceInfo():
                 "sourcePrimKey":"",
                 "delmiter":"",
                 "schemaCheck":"",
+                "supporting_data":"",
     }
     
     def __init__():
         print("Initialize SourceInfo")
     
-    @staticmethod
-    def set_value(passedKey,Value):
-       sourceData[passedKey]=value
-
+   
